@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>课堂倒计时</title>
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #app {
+        background-image: url("./break.png");
+        background-size: cover;
+        width: 600px;
+        height: 600px;
+      }
+      .layui-layer-demo {
+        background-color: #eee;
+      }
+      .layui-layer-demo .layui-layer-title {
+        border: none;
+        background-color: #ccc;
+      }
+      #time {
+        position: absolute;
+        margin: 20px auto;
+        top: 0;
+        left: 0;
+      }
+      .time {
+        padding-top: 40px;
+        text-align: center;
+      }
+      .time input {
+        width: 60%;
+        height: 40px;
+        line-height: 40px;
+        padding: 5px;
+        font-size: 20px;
+        margin-left: 20px;
+      }
+      #time {
+        text-align: center;
+        width: 100%;
+        font-size: 30px;
+        /* font-weight: bold; */
+        height: 50px;
+        line-height: 50px;
+        color: red;
+      }
+      #beginTime {
+        width: 100%;
+        text-align: center;
+      }
+      #btn {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        width: 150px;
+        height: 60px;
+        line-height: 60px;
+        border-radius: 4px;
+        text-align: center;
+        background-color: aquamarine;
+        border: none;
+        cursor: pointer;
+        color: #999;
+        font-size: 20px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="time" style="display: none"></div>
+    <div id="app" style="display: none"></div>
+    <button style="display: none" class="btn" id="btn">停止</button>
+    <script src="./moment.min.js"></script>
+    <script src="http://cdn.bootcss.com/jquery/1.12.3/jquery.min.js"></script>
+    <script src="./layer/layer.js"></script>
+    <script src="./laydate/laydate.js"></script>
+    <script>
+      var key = "lastTime";
+      var goTime = localStorage.getItem(key); // 当前的倒计时时间
+      var timeDom = document.getElementById("time");
+      if (goTime) {
+        goTime = parseInt(goTime);
+        // 如果时间存在 就开启定时器
+        if (goTime < Date.now()) {
+          // 说明时间已过
+          localStorage.removeItem(key); // 清空key
+          alertSetTime();
+        } else {
+          startTime(goTime);
+        }
+      } else {
+        alertSetTime();
+      }
+      //   开启计时
+      function startTime(goTime) {
+        window.flag = setInterval(function() {
+          var time = parseInt(goTime) - Date.now(); // 得到当前的时间差
+          if (time <= 0) {
+            $("#btn").hide();
+            $("#app").hide();
+            $("#time").hide();
+            clearInterval(flag); // 清除定时器
+            timeDom.innerHTML = `<div class='info'>上课进行中....</div>`;
+            return;
+          }
+          $("#btn").show();
+          $("#app").show();
+          $("#time").show();
+          var goTimeFormat = moment(new Date(goTime)).format(
+            "YYYY-MM-DD hh:mm:ss"
+          ); // 获取当前要到达的时间
+          var min = parseInt(time / 1000 / 60); // 一共多少分钟
+          var second = parseInt((time / 1000) % 60); // 还剩多少秒
+          var minsecond = parseInt(time % 1000); // 剩下的毫秒数
+          min = min.toString().length === 1 ? "0" + min : min;
+          second = second.toString().length === 1 ? "0" + second : second;
+          minsecond =
+            minsecond.toString().length === 2 ? "0" + minsecond : minsecond;
+          timeDom.innerHTML = `
+        <div class='beginTime'>
+           上课时间: ${goTimeFormat}
+        </div>
+        <div class='lastTime'>
+          <span>倒计时:</span>
+          <span>${min}</span>:
+          <span>${second}</span>
+        </div>`;
+        }, 100);
+      }
+      $("#btn").click(function() {
+        clearInterval(window.flag);
+        localStorage.removeItem(key); // 清空key
+        alertSetTime();
+        $("#btn").hide();
+        $("#app").hide();
+        $("#time").hide();
+      });
+      //   设置一个定时器
+      function alertSetTime() {
+        var index = layer.open({
+          type: 1,
+          skin: "layui-layer-demo", //样式类名
+          closeBtn: 1, //不显示关闭按钮
+          anim: 2,
+          title: "设置倒计时",
+          shadeClose: true, //开启遮罩关闭
+          content:
+            "<div class='time'><span>设置倒计时:</span><input id='myTime'></input></div>",
+          area: ["420px", "340px"],
+          success: function() {
+            laydate.render({
+              elem: "#myTime", //指定元素
+              type: "time",
+              value: new Date(),
+              done: function(value, date) {
+                var time =
+                  date.year + "-" + date.month + "-" + date.date + " " + value;
+                var goDate = Date.parse(time);
+                if (goDate - Date.now() <= 0) {
+                  layer.msg("请选择一个大于当前的时间");
+                  return;
+                }
+                localStorage.setItem(key, goDate);
+                startTime(goDate); // 开启倒计时
+                layer.close(index);
+              }
+            });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
