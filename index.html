@@ -119,7 +119,8 @@
             $("#app").hide();
             $("#time").hide();
             clearInterval(flag); // 清除定时器
-            timeDom.innerHTML = `<div class='info'>上课进行中....</div>`;
+            // timeDom.innerHTML = `<div class='info'>上课进行中....</div>`;
+            alertSetTime()
             return;
           }
           $("#btn").show();
