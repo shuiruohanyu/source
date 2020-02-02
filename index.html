@@ -12,10 +12,12 @@
         justify-content: center;
       }
       #app {
-        background-image: url("./break.png");
-        background-size: cover;
-        width: 600px;
-        height: 600px;
+        /* background-image: url("./break.png"); */
+        /* background-size: cover; */
+        /* width: 600px; */
+        margin-top: 140px;
+        height: 400px;
+        cursor: pointer;
       }
       .layui-layer-demo {
         background-color: #eee;
@@ -75,7 +77,9 @@
   </head>
   <body>
     <div id="time" style="display: none"></div>
-    <div id="app" style="display: none"></div>
+    <img onclick="clickImg()" id="app" src='./break.png' style="display: none">
+  </img>
+    <input id="myFile" type="file" style="display: none" onchange="selectFile(event)" />
     <button style="display: none" class="btn" id="btn">停止</button>
     <script src="./moment.min.js"></script>
     <script src="./jquery.min.js"></script>
@@ -83,8 +87,13 @@
     <script src="./laydate/laydate.js"></script>
     <script>
       var key = "lastTime";
+      var userKey="userImg"
       var goTime = localStorage.getItem(key); // 当前的倒计时时间
+      var userImg = localStorage.getItem(userKey); // 当前的倒计时时间
       var timeDom = document.getElementById("time");
+      if(userImg) {
+        $('#app').attr('src', userImg)
+      }
       if (goTime) {
         goTime = parseInt(goTime);
         // 如果时间存在 就开启定时器
@@ -97,6 +106,9 @@
         }
       } else {
         alertSetTime();
+      }
+      function clickImg () {
+        $("#myFile").trigger('click')
       }
       //   开启计时
       function startTime(goTime) {
@@ -142,6 +154,16 @@
         $("#app").hide();
         $("#time").hide();
       });
+      function selectFile (event) {
+        if(event.target.files && event.target.files.length) {
+         var reader = new FileReader ()
+          reader.addEventListener("load", function () {
+            $("#app").attr('src',reader.result)
+            localStorage.setItem(userKey, reader.result)
+          }, false);
+          reader.readAsDataURL(event.target.files[0])
+        }
+      }
       //   设置一个定时器
       function alertSetTime() {
         var index = layer.open({
